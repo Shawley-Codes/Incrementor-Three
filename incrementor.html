@@ -25,57 +25,230 @@
 			var score = 0;
 			var valueMultiplier = 1.0;
 			var redpoints = 1.0;
-			var redDuration = 5.0;
-			var bluepoints = 7.0;
-			var blueDuration = 6.0;
-			//var greenpoints = 1.0;
-			//var greenDuration = 5.0;
-			//var yellowpoints = 1.0;
-			//var yellowDuration = 5.0;
+			const redDuration = 5.0;
+			var redCubes = [];
+			var bluepoints = 6.0;
+			const blueDuration = 6.0;
+			var blueCubes = [];
+			var redLength = 0;
+			var blueLength = 0;
+			var numRedClicked = 0;
+			var numBlueClicked = 0;
+			var tbr = [];
+			var tbrL = tbr.length;
+			var delta = 0;
+			var secondelapsed = 0;
+			var globalDuration = 1.0;
+			var price = 100;
+			var pulse = true;
 
-
-
+			//create random three js stuffs
 			const clock = new THREE.Clock();
 			//create a scene
 			const scene = new THREE.Scene();
-			var axesHelper = new THREE.AxesHelper( 5 );
-			scene.add( axesHelper );
-			scene.background = new THREE.Color( cad2de );
+			//var axesHelper = new THREE.AxesHelper( 5 );
+			//scene.add( axesHelper );
+			scene.background = new THREE.Color( 0x8888ff );
 			//create a camera
-			const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+			const camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 5000 );
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+			const stats = Stats()
+			document.body.appendChild(stats.dom)
 
+			//define cubes
+			var cubeGeometry = new THREE.BoxGeometry(100,100,100);
+			//var cubeMaterialRed = new THREE.MeshLambertMaterial({color:0xff0000});
+			var RedPhongMat = new THREE.MeshPhongMaterial({
+    			color: new THREE.Color("rgb(100,0,0)"),
+    			specular: new THREE.Color("rgb(190,0,0)"),
+    			shininess: 10,
+    			//flatshading: THREE.FlatShading,
+    			transparent: 1,
+    			opacity: 1
+  			});
+			var BluePhongMat = new THREE.MeshPhongMaterial({
+    			color: new THREE.Color("rgb(0,0,100)"),
+    			specular: new THREE.Color("rgb(0,0,190)"),
+    			shininess: 10,
+    			//flatshading: THREE.FlatShading,
+    			transparent: 1,
+    			opacity: 1
+  			});
+			//var cubeMaterialBlue = new THREE.MeshLambertMaterial({color:0xa04aff});
+			
 
+			//var cube = new THREE.Mesh(cubeGeometry, cubeMaterialRed);
+			//scene.add(cube);
+
+			//define lights
+			var fillLight1 = new THREE.DirectionalLight( 0xff9999, 0.5 );
+			fillLight1.position.set( - 1, 1, 2 );
+			scene.add( fillLight1 );
+
+			const fillLight2 = new THREE.DirectionalLight( 0x8888ff, 0.2 );
+			fillLight2.position.set( 0, - 1, 0 );
+			scene.add( fillLight2 );
+
+			//var box;
 			//function used to create cubes in random locations with colors specific to button use
 			function createGEO(color){
 				switch(color){
 					//create a red cube
 					case "red":
-						scene.add(cube);
+						var box = new THREE.Mesh(cubeGeometry, RedPhongMat);
+
+						box.position.x = Math.random() * 1000 - 500;
+   						box.position.y = Math.random() * 1000 - 500;
+    					box.position.z = Math.random() * 500 - 500;
+						numRedClicked++;
+						scene.add(box);
+						redCubes.push(box);
 						break;
 					//create a blue cube
 					case "blue":
+						var box = new THREE.Mesh(cubeGeometry, BluePhongMat);
+
+						box.position.x = Math.random() * 1000 - 500;
+						box.position.y = Math.random() * 1000 - 500;
+						box.position.z = Math.random() * 500 - 500;
+						numBlueClicked++;
+						scene.add(box);
+						blueCubes.push(box);
 						break;
 				}
 			}
 
 			//displays controls, add more controls over time
-			var guicontrols = new function(){
+			var guicontrols = {
+				CreateRedCube:function(){
+					createGEO("red");
+				},
+				CreateBlueCube:function(){
+					createGEO("blue");
+				},
 
+				AddGlobalDuration:function(){
+					if(score > price){
+						globalDuration += .1;
+						score -= price;
+						price *= 2;
+					} else {
+						console.log("Cant Afford Price:", price);
+					}
+				},
+				LowerGlobalDuration:function(){
+					if(score > price){
+						globalDuration -= .1;
+						score -= price;
+						price *= 2;
+					} else {
+						console.log("Cant Afford Price:", price);
+					}
+				},
+				//Score: 0,
+			};
+
+			var updateGUI = new function(){
+				//if statements to check score and unlock new buttons
 			}
+
+			var gui = new GUI();
+			gui.remember(guicontrols);
+			//gui.add(guicontrols, 'Create Red Cube');
+			//gui.add(guicontrols, 'Score')
+			gui.add(guicontrols, 'CreateRedCube');
+			gui.add(guicontrols, 'CreateBlueCube');
+			gui.add(guicontrols, 'AddGlobalDuration');
+			gui.add(guicontrols, 'LowerGlobalDuration');
+
 			
-			render();
-			function render(){
+			function animate(){
 				//check for red cubes, and animate them rotating and shrinking
+				delta = clock.getDelta();
+				secondelapsed += delta;
+				redLength = redCubes.length;
+				for(var i = 0; i < redLength; i++){
+					redCubes[i].rotation.z += .1;
+					redCubes[i].rotation.y += .1;
+					redCubes[i].rotation.x += .1;
+					redCubes[i].scale.x -= 1/redDuration * delta * globalDuration;
+					redCubes[i].scale.y -= 1/redDuration * delta * globalDuration;
+					redCubes[i].scale.z -= 1/redDuration * delta * globalDuration;
+					if (redCubes[i].scale.x < 0){
+						tbr.push(i);
+					}
+				}
+				//cleanup process for red cubes
+				
+				var tbrL = tbr.length;
+				for(var i = 0; i < tbrL; i++){
+					scene.remove(redCubes[tbr[i]]);
+					redCubes.splice(tbr[i],1);
+				}
+				tbr.length = 0;
 
-				//check for blue cubes and animate them growing
-
+				//check for blue cubes and animate them pulsing
+				blueLength = blueCubes.length;
+				for(var i = 0; i < blueLength; i++){
+					if(pulse == true){
+						blueCubes[i].rotation.z += .01;
+						blueCubes[i].rotation.y += .01;
+						blueCubes[i].rotation.x += .01;
+						blueCubes[i].scale.x -= 2/blueDuration * delta * globalDuration;
+						blueCubes[i].scale.y -= 2/blueDuration * delta * globalDuration;
+						blueCubes[i].scale.z -= 2/blueDuration * delta * globalDuration;
+					} else {
+						blueCubes[i].rotation.z -= .1;
+						blueCubes[i].rotation.y -= .1;
+						blueCubes[i].rotation.x -= .1;
+						blueCubes[i].scale.x += .5/blueDuration * delta * globalDuration;
+						blueCubes[i].scale.y += .5/blueDuration * delta * globalDuration;
+						blueCubes[i].scale.z += .5/blueDuration * delta * globalDuration;
+					}
+					if (blueCubes[i].scale.x < 0){
+						tbr.push(i);
+					}
+				}
+				var tbrL = tbr.length;
+				for(var i = 0; i < tbrL; i++){
+						scene.remove(blueCubes[tbr[i]]);
+						blueCubes.splice(tbr[i],1);
+						score += bluepoints * tbrL;
+				}
+				tbr.length = 0;
 				//update game information
 
-				//request next frame
-				requestAnimationFrame(render);
+				//update score and swap pulse
+				if(secondelapsed >= 1.0){
+					score += redpoints*redLength;
+					console.log("Score:", score);
+					secondelapsed = 0;
+					if(pulse == true){
+						pulse = false;
+					} else {
+						pulse = true;
+					}
+
+				}
+				//end game at 5 minutes
+				if (clock.getElapsedTime() > 300){
+					console.log("GameFinished, Final Score: ", score);
+					return;
+				}
+				requestAnimationFrame(animate);
+				//call render and get next frame
+				stats.update();
+				render();
+				
 			}
 
+			function render(){
+				renderer.render(scene, camera);
+			}
 
+			animate();
 		</script>
 	</body>
 </html>
