@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js - misc - octree collisions</title>
+		<meta charset=utf-8 />
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+	<body>
+		<div id="info">Incrementor Game<br />Click Buttons To Increase Numbers</div>
+		<div id="container"></div>
+
+		<script type="module">
+			//import gui and stats for game
+			import * as THREE from '../build/three.module.js';
+
+			import { GUI } from './jsm/libs/dat.gui.module.js';
+			import Stats from './jsm/libs/stats.module.js';
+
+			import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+			import { Octree } from './jsm/math/Octree.js';
+			import { Capsule } from './jsm/math/Capsule.js';
+
+			//define game stats
+			var score = 0;
+			var valueMultiplier = 1.0;
+			var redpoints = 1.0;
+			var redDuration = 5.0;
+			var bluepoints = 7.0;
+			var blueDuration = 6.0;
+			//var greenpoints = 1.0;
+			//var greenDuration = 5.0;
+			//var yellowpoints = 1.0;
+			//var yellowDuration = 5.0;
+
+
+
+			const clock = new THREE.Clock();
+			//create a scene
+			const scene = new THREE.Scene();
+			var axesHelper = new THREE.AxesHelper( 5 );
+			scene.add( axesHelper );
+			scene.background = new THREE.Color( cad2de );
+			//create a camera
+			const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+
+
+			//function used to create cubes in random locations with colors specific to button use
+			function createGEO(color){
+				switch(color){
+					//create a red cube
+					case "red":
+						scene.add(cube);
+						break;
+					//create a blue cube
+					case "blue":
+						break;
+				}
+			}
+
+			//displays controls, add more controls over time
+			var guicontrols = new function(){
+
+			}
+			
+			render();
+			function render(){
+				//check for red cubes, and animate them rotating and shrinking
+
+				//check for blue cubes and animate them growing
+
+				//update game information
+
+				//request next frame
+				requestAnimationFrame(render);
+			}
+
+
+		</script>
+	</body>
+</html>
